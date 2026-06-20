@@ -1,5 +1,5 @@
 const User = require('../models/User');
-const { generateAIFeedback } = require('../utils/aiFeedbackService');
+const { generateAIFeedback } = require('../Utils/aiFeedbackService');
 const { analyseMatch } = require('../utils/atsEngine');
 
 // @desc    Get AI-powered resume feedback for a job description
