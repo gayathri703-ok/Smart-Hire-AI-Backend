@@ -1,13 +1,18 @@
 const nodemailer = require('nodemailer');
 
-// Create reusable transporter using Gmail
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
-  }
+  },
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 10000
 });
+
 transporter.verify((error, success) => {
   if (error) {
     console.log("❌ Email Error:", error);
@@ -16,9 +21,6 @@ transporter.verify((error, success) => {
   }
 });
 
-/**
- * Send application status update email to candidate
- */
 async function sendStatusEmail(toEmail, candidateName, jobTitle, company, status, recruiterNote = '') {
   const statusConfig = {
     accepted: {
@@ -100,7 +102,7 @@ async function sendStatusEmail(toEmail, candidateName, jobTitle, company, status
         ` : ''}
 
         <div style="text-align: center; margin-top: 32px;">
-          <a href="http://localhost:3000/applications" style="display: inline-block; background: ${config.color}; color: white; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-size: 14px; font-weight: 600;">
+          <a href="https://smart-hire-ai-frontend-mu.vercel.app/applications" style="display: inline-block; background: ${config.color}; color: white; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-size: 14px; font-weight: 600;">
             View My Applications
           </a>
         </div>
@@ -131,4 +133,4 @@ async function sendStatusEmail(toEmail, candidateName, jobTitle, company, status
   }
 }
 
-module.exports = { sendStatusEmail };
+module.exports = { sendStatusEmail, transporter };
