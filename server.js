@@ -42,6 +42,30 @@ app.get('/', (req, res) => {
   });
 });
 
+// ── TEMP EMAIL TEST ROUTE ── remove after testing ──
+app.get('/test-email', async (req, res) => {
+  try {
+    const nodemailer = require('nodemailer');
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: process.env.EMAIL_USER,
+      subject: 'SmartHire Email Test',
+      text: 'Email is working correctly!',
+    });
+    res.json({ success: true, message: 'Test email sent to ' + process.env.EMAIL_USER });
+  } catch (err) {
+    res.json({ success: false, error: err.message });
+  }
+});
+// ── END TEMP ROUTE ──
+
 app.use((req, res) => {
   res.status(404).json({
     success: false,

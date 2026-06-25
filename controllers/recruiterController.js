@@ -38,6 +38,9 @@ exports.getJobApplications = async (req, res) => {
 };
 
 exports.updateApplicationStatus = async (req, res) => {
+
+  console.log("🔥 UPDATE APPLICATION STATUS ROUTE HIT");
+
   try {
     const { status, recruiterNote } = req.body;
     if (!['applied','in_review','accepted','rejected'].includes(status))
@@ -51,19 +54,27 @@ exports.updateApplicationStatus = async (req, res) => {
     if (app.job.postedBy.toString() !== req.user.id && req.user.role !== 'admin')
       return res.status(403).json({ success: false, message: 'Not authorized' });
 
-    app.status = status;
-    if (recruiterNote !== undefined) app.recruiterNote = recruiterNote;
-    await app.save();
+   app.status = status;
+if (recruiterNote !== undefined) app.recruiterNote = recruiterNote;
+await app.save();
 
-    // Send email notification (don't block response if it fails)
-    sendStatusEmail(
-      app.user.email,
-      app.user.name,
-      app.job.title,
-      app.job.company,
-      status,
-      recruiterNote || app.recruiterNote
-    ).catch(err => console.error('Email error:', err.message));
+console.log("=== EMAIL DEBUG ===");
+console.log("Email:", app.user.email);
+console.log("Name:", app.user.name);
+console.log("Status:", status);
+
+sendStatusEmail(
+  app.user.email,
+  app.user.name,
+  app.job.title,
+  app.job.company,
+  status,
+  recruiterNote || app.recruiterNote
+)
+.then(() => console.log("✅ Email function completed"))
+.catch(err => console.error("❌ Email error:", err));
+
+console.log("=== EMAIL CALL FINISHED ===");
 
     res.status(200).json({ success: true, message: `Status updated to '${status}'`, data: app });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
