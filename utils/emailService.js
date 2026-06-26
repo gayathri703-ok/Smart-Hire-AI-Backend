@@ -85,14 +85,14 @@ async function sendStatusEmail(toEmail, candidateName, jobTitle, company, status
   </html>`;
 
   // ✅ Brevo HTTP API — works on Render free tier
-  const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+ const response = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'api-key': process.env.BREVO_API_KEY
     },
     body: JSON.stringify({
-      sender: { name: 'SmartHire AI', email: 'aff387001@smtp-brevo.com' }, // ← Brevo sender
+      sender: { name: 'SmartHire AI', email: 'aff387001@smtp-brevo.com' },
       to: [{ email: toEmail, name: candidateName }],
       subject: config.subject,
       htmlContent: html
@@ -100,6 +100,11 @@ async function sendStatusEmail(toEmail, candidateName, jobTitle, company, status
   });
 
   const result = await response.json();
+  console.log('📬 Brevo full response:', JSON.stringify(result)); // ← ADD THIS
+  if (!response.ok) {
+    console.error('❌ Brevo API error:', result);
+    throw new Error(result.message || 'Brevo API failed');
+  }
   console.log(`✅ Email sent via Brevo API — messageId: ${result.messageId}`);
   return true;
 }
