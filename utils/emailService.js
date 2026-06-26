@@ -1,17 +1,13 @@
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
+  host: 'smtp-relay.brevo.com',
   port: 587,
   secure: false,
-  requireTLS: true,
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  },
-  connectionTimeout: 15000,
-  greetingTimeout: 15000,
-  socketTimeout: 15000
+    user: process.env.BREVO_USER,
+    pass: process.env.BREVO_PASS
+  }
 });
 
 transporter.verify((error, success) => {
@@ -23,6 +19,8 @@ transporter.verify((error, success) => {
 });
 
 async function sendStatusEmail(toEmail, candidateName, jobTitle, company, status, recruiterNote = '') {
+  console.log(`📨 sendStatusEmail called → to: ${toEmail}, status: ${status}`);
+
   const statusConfig = {
     accepted: {
       subject: `🎉 Great news! You've been accepted for ${jobTitle}`,
@@ -48,7 +46,10 @@ async function sendStatusEmail(toEmail, candidateName, jobTitle, company, status
   };
 
   const config = statusConfig[status];
-  if (!config) return;
+  if (!config) {
+    console.log(`⚠️ No email config for status: ${status} — skipping`);
+    return;
+  }
 
   const html = `
   <!DOCTYPE html>
@@ -88,7 +89,7 @@ async function sendStatusEmail(toEmail, candidateName, jobTitle, company, status
           <table style="width: 100%; font-size: 14px; color: #555;">
             <tr><td style="padding: 4px 0;"><strong>Position:</strong></td><td style="padding: 4px 0;">${jobTitle}</td></tr>
             <tr><td style="padding: 4px 0;"><strong>Company:</strong></td><td style="padding: 4px 0;">${company}</td></tr>
-            <tr><td style="padding: 4px 0;"><strong>Status:</strong></td><td style="padding: 4px 0; color: ${config.color}; font-weight: 600; text-transform: capitalize;">${status.replace('_',' ')}</td></tr>
+            <tr><td style="padding: 4px 0;"><strong>Status:</strong></td><td style="padding: 4px 0; color: ${config.color}; font-weight: 600; text-transform: capitalize;">${status.replace('_', ' ')}</td></tr>
           </table>
         </div>
 
@@ -103,7 +104,8 @@ async function sendStatusEmail(toEmail, candidateName, jobTitle, company, status
         ` : ''}
 
         <div style="text-align: center; margin-top: 32px;">
-          <a href="https://smart-hire-ai-frontend-mu.vercel.app/applications" style="display: inline-block; background: ${config.color}; color: white; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-size: 14px; font-weight: 600;">
+          <a href="https://smart-hire-ai-frontend-mu.vercel.app/applications" 
+             style="display: inline-block; background: ${config.color}; color: white; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-size: 14px; font-weight: 600;">
             View My Applications
           </a>
         </div>
@@ -119,16 +121,15 @@ async function sendStatusEmail(toEmail, candidateName, jobTitle, company, status
   </html>
   `;
 
- // ✅ FIXED — throws the error so controller can catch it
-console.log(`📨 Attempting to send email to: ${toEmail}`);
-const result = await transporter.sendMail({
-  from: `"SmartHire AI" <${process.env.EMAIL_USER}>`,
-  to: toEmail,
-  subject: config.subject,
-  html
-});
-console.log(`✅ Email sent to ${toEmail} — messageId: ${result.messageId}`);
-return true;
+  const result = await transporter.sendMail({
+    from: `"SmartHire AI" <${process.env.BREVO_USER}>`,
+    to: toEmail,
+    subject: config.subject,
+    html
+  });
+
+  console.log(`✅ Email sent to ${toEmail} — messageId: ${result.messageId}`);
+  return true;
 }
 
 module.exports = { sendStatusEmail, transporter };
