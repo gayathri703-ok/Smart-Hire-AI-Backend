@@ -119,19 +119,16 @@ async function sendStatusEmail(toEmail, candidateName, jobTitle, company, status
   </html>
   `;
 
-  try {
-    await transporter.sendMail({
-      from: `"SmartHire AI" <${process.env.EMAIL_USER}>`,
-      to: toEmail,
-      subject: config.subject,
-      html
-    });
-    console.log(`✅ Email sent to ${toEmail} — status: ${status}`);
-    return true;
-  } catch (err) {
-    console.error('❌ Email send failed:', err.message);
-    return false;
-  }
+ // ✅ FIXED — throws the error so controller can catch it
+console.log(`📨 Attempting to send email to: ${toEmail}`);
+const result = await transporter.sendMail({
+  from: `"SmartHire AI" <${process.env.EMAIL_USER}>`,
+  to: toEmail,
+  subject: config.subject,
+  html
+});
+console.log(`✅ Email sent to ${toEmail} — messageId: ${result.messageId}`);
+return true;
 }
 
 module.exports = { sendStatusEmail, transporter };
